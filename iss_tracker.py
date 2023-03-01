@@ -79,6 +79,14 @@ def data_status() -> dict:
 
 @app.route('/comment', methods=['GET'])
 def get_comment() -> list:
+    """
+    Getting the comment data from the xml file from NASA
+
+    Args:
+        None
+    Returns:
+        list with the comment data
+    """
     if iss_data == {}:
         return data_status()
     comments = iss_data['ndm']['oem']['body']['segment']['data']['COMMENT']
@@ -86,6 +94,14 @@ def get_comment() -> list:
 
 @app.route('/header', methods=['GET'])
 def get_header() -> dict:
+    """
+    Getting the header data from the xml file from NASA
+
+    Args:
+        None
+    Returns:
+        dictionary with the header data
+    """
     if iss_data == {}:
         return data_status()
     header = iss_data['ndm']['oem']['header']
@@ -93,10 +109,19 @@ def get_header() -> dict:
 
 @app.route('/metadata', methods=['GET'])
 def get_metadata() -> dict:
+    """
+    Getting the meta data from the xml file from NASA
+
+    Args:
+        None
+    Returns:
+        dictionary with the meta data
+    """
     if iss_data == {}:
         return data_status()
     metadata = iss_data['ndm']['oem']['body']['segment']['metadata']
     return metadata
+
 @app.route('/epochs', methods=['GET'])
 def get_epochs() -> list:
     """Seperates all epochs from dictionary of iss_data
