@@ -3,6 +3,7 @@ import json
 import xmltodict
 import requests 
 import math
+import yaml
 
 """getting iss trajectory data and doing calculations 
 
@@ -76,6 +77,26 @@ def data_status() -> dict:
     else:
         return iss_data
 
+@app.route('/comment', methods=['GET'])
+def get_comment() -> list:
+    if iss_data == {}:
+        return data_status()
+    comments = iss_data['ndm']['oem']['body']['segment']['data']['COMMENT']
+    return comments
+
+@app.route('/header', methods=['GET'])
+def get_header() -> dict:
+    if iss_data == {}:
+        return data_status()
+    header = iss_data['ndm']['oem']['header']
+    return header
+
+@app.route('/metadata', methods=['GET'])
+def get_metadata() -> dict:
+    if iss_data == {}:
+        return data_status()
+    metadata = iss_data['ndm']['oem']['body']['segment']['metadata']
+    return metadata
 @app.route('/epochs', methods=['GET'])
 def get_epochs() -> list:
     """Seperates all epochs from dictionary of iss_data
@@ -171,9 +192,28 @@ def post_data() -> str:
     iss_data = get_data()
     return 'Data Posted'
 
+def get_config() -> dict:
+    """
+    Function attempts to find a configuration for the user if not we use the default configuration
+    Args:
+        none
+    Returns:
+        dictionary with configuration information such as debug setting.
+    """
+    default_config = {"debug": True}
+    try:
+        with open('config.yaml', 'r') as f:
+            return yaml.safe_load(f)
+    except Exception as e:
+        print(f"Couldn't load the config file; details: {e}")
+    return default_config
 #global trajectory data variable and length
 iss_data = get_data()
 L = len(iss_data['ndm']['oem']['body']['segment']['data']['stateVector'])
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    config = get_config()
+    if config.get('debug', True):
+        app.run(debug=True, host='0.0.0.0')
+    else:
+        app.run(host='0.0.0.0')
