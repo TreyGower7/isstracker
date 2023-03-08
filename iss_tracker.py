@@ -4,6 +4,8 @@ import xmltodict
 import requests 
 import math
 import yaml
+import time
+from geopy.geocoders import Nominatim
 
 """getting iss trajectory data and doing calculations 
 
@@ -160,7 +162,7 @@ def vec_epochs(epoch) -> list:
         epoch (a specific epoch we want to look at)
 
     Returns:
-        A vector(list) named spec_epoch taken from specific data in the list of epochs
+        A vector(list of dictionaries) named spec_epoch returning data for a single epoch
     """
     if iss_data == {}:
         return data_status()
@@ -232,6 +234,82 @@ def get_config() -> dict:
     except Exception as e:
         print(f"Couldn't load the config file; details: {e}")
     return default_config
+
+@app.route('/epochs/<epoch>/location', methods=['GET'])
+def get_location(epoch) -> dict:
+    """
+    Retrieves location data from a specific epoch
+    Args:
+        epoch (a list of dictionaries with a specific epoch and its data)
+    returns:
+        Returns a dictionary with latitude, longitude, altitude, and geoposition for given Epoch
+    """
+    data = vec_epochs(epoch)
+    time = get_time(epoch)
+    x = float(data['X']['#text'])
+    y = float(data['Y']['#text'])
+    z = float(data['Z']['#text'])
+    lat = math.degrees(math.atan2(z, math.sqrt(x**2 + y**2)))
+    lon = math.degrees(math.atan2(y, x)) - ((time['hrs']-12)+(time['mins']/60))*(360/24) + 24
+    alt = math.sqrt(x**2 + y**2 + z**2) - 6371
+    lon = lon_correction(lon)
+    geocoder = Nominatim(user_agent='iss_tracker')
+    geoloc = geocoder.reverse((lat,lon), zoom=15, language='en')
+    if geoloc == None:
+        location= 'Somewhere over the ocean'
+    else:
+        location = {'Address': geoloc.address}
+    geodata= {'latitude': lat,'longitude': lon, 'altitude': alt, 'geoposition': location}
+    return geodata
+
+@app.route('/now', methods=['GET'])
+def get_now() -> dict:
+    """
+    Based on current data provided by NASA gets the closest ISS epoch data based on your currrent time of day
+    Args:
+        none
+    Returns:
+        dictionary of the closest epoch, the geopositional data, and speed
+    """
+    prevdiff = 0;
+    for epoch in get_epochs:
+        time_now = time.time()
+        time_close = get_time(epoch)
+        time_diff = math.abs(time_now-time_close['sec'])
+        if time_diff < prevdiff:
+            nearest = [vec_epochs(epoch), time_close]
+        prevdiff = time_diff
+#***need to add code to get positional data and stuff for nearest epoch now***
+
+def lon_correction(lon):
+    """
+    This funtion serves to adjust longitude if it deviates outside of -180 deg => 180 deg by normalizing the value
+    Args: 
+        lon (the uncorrected longitudinal value)
+    returns:
+        An integer (lon) of the corrected longitudinal value
+    """
+    while lon >= 180:
+        lon -= 360
+    while lon <= -180:
+        lon += 360
+
+    return lon
+
+def get_time(epoch):
+        """
+        Getting the time from each epoch and then converting to seconds
+        Args:
+            epoch (the data for a given date/time)
+        returns:
+            A dictionary containing time taken from the epoch key
+        """
+        time=epoch
+        hrs = int(time[9:11])
+        mins = int(time[12:14])
+        sec = time.mktime(time.strptime(epoch[:-5], '%Y-%jT%H:%M:%S'))
+        return {'hrs':hrs, 'mins': mins, 'sec': seconds} 
+
 #global trajectory data variable and length
 iss_data = get_data()
 L = len(iss_data['ndm']['oem']['body']['segment']['data']['stateVector'])
