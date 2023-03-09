@@ -1,6 +1,6 @@
 from flask import Flask, request
-import json
 import xmltodict
+import json
 import requests 
 import math
 import yaml
@@ -36,13 +36,22 @@ def help() -> str:
     get_help = """Usage:  curl [Localhost ip]:5000/[Path]\n
             A general utility for iss_tracking and paths\n
 Path Options:\n
-            (1)  / (gets all data from the ISS)\n
-            (2)  /epochs (gets all epochsfrom the ISS)\n
-            (3)  /epochs?limit=int&offset=int  (Return modified list of Epochs given query parameters)\n
+
+Epoch Paths:
+            (1) / (gets all data from the ISS)\n
+            (2) /epochs (gets all epochsfrom the ISS)\n
+            (3) /epochs?limit=int&offset=int  (Return modified list of Epochs given query parameters)\n
             (4) /epochs/<epoch> (return a specific epoch given a date and time)\n
             (5) /epochs/<epoch>/speed (Return instantaneous speed for a specific Epoch)\n
-            (6) /delete-data (Deletes all data from data set)\n
-            (7) /post-data  (Reloads all data from data from the web)\n
+            (6) /epochs/<epoch>/location (Returns Latitude,Longitude, and geopositional data for specific epoch)\n
+            (7) /now (Returns everything in location data for the most concurrent position of the ISS)\n
+
+Data Management Paths:
+            (1) /delete-data (Deletes all data from data set)\n
+            (2) /post-data  (Reloads all data from data from the web)\n
+            (3) /comment (Gets the comments attached to the data from Nasa)\n
+            (4) /header (Gets the header for the data set)\n
+            (5) /metadata (Gets the metadata for the data set)\n
 ***End Help Section For ISS Tracking***\n"""
     return get_help 
 
@@ -191,7 +200,7 @@ def speed_epoch(epoch) -> list:
     y_dot = float(spec_epoch['Y_DOT']["#text"])
     x_dot = float(spec_epoch['X_DOT']["#text"])
     speed = math.sqrt(x_dot**2 + y_dot**2 + z_dot**2)
-    return {'Speed': speed}
+    return {"Speed": {"value": speed, "units": 'km/s'}}
 
 @app.route('/delete-data', methods=['DELETE'])
 def delete_data() -> str:
@@ -240,26 +249,20 @@ def get_location(epoch) -> dict:
     """
     Retrieves location data from a specific epoch
     Args:
-        epoch (a list of dictionaries with a specific epoch and its data)
+        epoch (a string of a specific epoch)
     returns:
         Returns a dictionary with latitude, longitude, altitude, and geoposition for given Epoch
     """
     data = vec_epochs(epoch)
-    time = get_time(epoch)
-    x = float(data['X']['#text'])
-    y = float(data['Y']['#text'])
-    z = float(data['Z']['#text'])
-    lat = math.degrees(math.atan2(z, math.sqrt(x**2 + y**2)))
-    lon = math.degrees(math.atan2(y, x)) - ((time['hrs']-12)+(time['mins']/60))*(360/24) + 24
-    alt = math.sqrt(x**2 + y**2 + z**2) - 6371
-    lon = lon_correction(lon)
+    lla = compute_lla(data)
     geocoder = Nominatim(user_agent='iss_tracker')
-    geoloc = geocoder.reverse((lat,lon), zoom=15, language='en')
+    geoloc = geocoder.reverse((lla['lat'],lla['lon']), zoom=15, language='en')
     if geoloc == None:
         location= 'Somewhere over the ocean'
     else:
-        location = {'Address': geoloc.address}
-    geodata= {'latitude': lat,'longitude': lon, 'altitude': alt, 'geoposition': location}
+        location = geoloc.raw
+        location = location['address']
+    geodata= {'location': {'latitude': lla['lat'],'longitude': lla['lon'], 'altitude': {'value': lla['alt'], 'units': 'km'}}, 'geo': location}
     return geodata
 
 @app.route('/now', methods=['GET'])
@@ -271,44 +274,57 @@ def get_now() -> dict:
     Returns:
         dictionary of the closest epoch, the geopositional data, and speed
     """
-    prevdiff = 0;
-    for epoch in get_epochs:
-        time_now = time.time()
-        time_close = get_time(epoch)
-        time_diff = math.abs(time_now-time_close['sec'])
+    prevdiff = 0
+    time_now=time.time()
+    data = get_epochs()
+    for x in range(len(data)):
+        time_close = get_time(data[x])
+        time_diff = time_now-time_close['sec']
         if time_diff < prevdiff:
-            nearest = [vec_epochs(epoch), time_close]
+            nearest = vec_epochs(data[x])
+            nearest = nearest['EPOCH']
         prevdiff = time_diff
-#***need to add code to get positional data and stuff for nearest epoch now***
+    speed = speed_epoch(nearest)
+    loc = get_location(nearest)
+    closest = {"closest_epoch": nearest , "seconds_from_now": time_diff, "geo": loc['geo'], "Speed": speed['Speed'], "Location": loc['location']} 
+    return closest
 
-def lon_correction(lon):
+def compute_lla(data):
     """
-    This funtion serves to adjust longitude if it deviates outside of -180 deg => 180 deg by normalizing the value
+    This funtion serves to compute latitude and longitude and adjust longitude if it deviates outside of -180 deg => 180 deg by normalizing the value
     Args: 
-        lon (the uncorrected longitudinal value)
+        data (the XYZ data)
     returns:
-        An integer (lon) of the corrected longitudinal value
+        A dictionary of the corrected lat,lon,alt values
     """
+    t = get_time(data['EPOCH'])
+    x = float(data['X']['#text'])
+    y = float(data['Y']['#text'])
+    z = float(data['Z']['#text'])
+    lat = math.degrees(math.atan2(z, math.sqrt(x**2 + y**2)))
+    lon = math.degrees(math.atan2(y, x)) - ((t['hrs']-12)+(t['mins']/60))*(360/24) + 24
+    alt = math.sqrt(x**2 + y**2 + z**2) - 6371
+    
     while lon >= 180:
         lon -= 360
     while lon <= -180:
         lon += 360
 
-    return lon
+    return {'lat': lat, 'lon': lon, 'alt': alt}
 
 def get_time(epoch):
         """
-        Getting the time from each epoch and then converting to seconds
+        Getting the time in hrs, mins, seconds from each epoch 
         Args:
             epoch (the data for a given date/time)
         returns:
             A dictionary containing time taken from the epoch key
         """
-        time=epoch
-        hrs = int(time[9:11])
-        mins = int(time[12:14])
+        t=epoch
+        hrs = int(t[9:11])
+        mins = int(t[12:14])
         sec = time.mktime(time.strptime(epoch[:-5], '%Y-%jT%H:%M:%S'))
-        return {'hrs':hrs, 'mins': mins, 'sec': seconds} 
+        return {'hrs':hrs, 'mins': mins, 'sec': sec} 
 
 #global trajectory data variable and length
 iss_data = get_data()
