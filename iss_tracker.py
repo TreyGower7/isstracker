@@ -253,6 +253,8 @@ def get_location(epoch) -> dict:
     returns:
         Returns a dictionary with latitude, longitude, altitude, and geoposition for given Epoch
     """
+    if iss_data == {}:
+        return data_status()
     data = vec_epochs(epoch)
     lla = compute_lla(data)
     geocoder = Nominatim(user_agent='iss_tracker')
@@ -274,19 +276,21 @@ def get_now() -> dict:
     Returns:
         dictionary of the closest epoch, the geopositional data, and speed
     """
-    prevdiff = 0
-    time_now=time.time()
+    if iss_data == {}:
+        return data_status()
     data = get_epochs()
-    for x in range(len(data)):
-        time_close = get_time(data[x])
-        time_diff = time_now-time_close['sec']
-        if time_diff < prevdiff:
-            nearest = vec_epochs(data[x])
-            nearest = nearest['EPOCH']
-        prevdiff = time_diff
+    time_now=time.time()
+    prevdiff =time_now - time.mktime(time.strptime(data[0][:-5], '%Y-%jT%H:%M:%S'))
+    for epoch in data:
+        time_epoch = time.mktime(time.strptime(epoch[:-5], '%Y-%jT%H:%M:%S'))
+        time_diff = time_now-time_epoch
+        if abs(time_diff) < abs(prevdiff):
+            nearest = epoch
+            prevdiff = time_diff
+
     speed = speed_epoch(nearest)
     loc = get_location(nearest)
-    closest = {"closest_epoch": nearest , "seconds_from_now": time_diff, "geo": loc['geo'], "Speed": speed['Speed'], "Location": loc['location']} 
+    closest = {"closest_epoch": nearest , "seconds_from_now": prevdiff, "geo": loc['geo'], "Speed": speed['Speed'], "Location": loc['location']} 
     return closest
 
 def compute_lla(data):
@@ -302,7 +306,7 @@ def compute_lla(data):
     y = float(data['Y']['#text'])
     z = float(data['Z']['#text'])
     lat = math.degrees(math.atan2(z, math.sqrt(x**2 + y**2)))
-    lon = math.degrees(math.atan2(y, x)) - ((t['hrs']-12)+(t['mins']/60))*(360/24) + 24
+    lon = math.degrees(math.atan2(y, x)) - ((t['hrs']-12)+(t['mins']/60))*(360/24) + 32
     alt = math.sqrt(x**2 + y**2 + z**2) - 6371
     
     while lon >= 180:
@@ -314,7 +318,7 @@ def compute_lla(data):
 
 def get_time(epoch):
         """
-        Getting the time in hrs, mins, seconds from each epoch 
+        Getting the time in hrs and  mins from each epoch 
         Args:
             epoch (the data for a given date/time)
         returns:
@@ -323,8 +327,7 @@ def get_time(epoch):
         t=epoch
         hrs = int(t[9:11])
         mins = int(t[12:14])
-        sec = time.mktime(time.strptime(epoch[:-5], '%Y-%jT%H:%M:%S'))
-        return {'hrs':hrs, 'mins': mins, 'sec': sec} 
+        return {'hrs':hrs, 'mins': mins} 
 
 #global trajectory data variable and length
 iss_data = get_data()
