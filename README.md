@@ -1,12 +1,8 @@
 #Intriguing ISS Trajectory Data
 
-folder contents / project objective
+Project Objective
 -----------------------------
-Folder contains 1 .py script iss_tracker.py. The objective is to feed in data from NASA using python requests library. Then, query it, and return more interesting data we can do calculations with.
-
-Data Access
------------------------------
-Using the the iss_tracker python script and pythons import requests library we access and get data from the data set found here: 'https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.xml'. The download contains data in 4 minute intervals of position, and velocity of the ISS Space Station.
+The objective is to feed in data from NASA using python requests library, query it, and return data that tracks the geopostion.
 
 Description of Files
 -----------------------------
@@ -15,6 +11,11 @@ The script iss_tracker.py gets the data from an xml file from NASA and imports t
 The Dockerfile is used to capture the docker image. The file specifies Python version and any libraries that need to be installed will be from the Dockerfile.
 
 The docker-compose.yml file is extremely useful as it saves the user (you) from having to type in commands to run the docker image. Instead it wraps the information for the docker image into a file and runs it with a simple command highlighted below.
+
+Data Access
+-----------------------------
+Using the the iss_tracker python script and pythons import requests library we access and get data from the data set found here: 'https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.xml'. The download contains data in 4 minute intervals of position, and velocity of the ISS Space Station.
+
 
 Instructions on Use Using Existing Docker Image
 -----------------------------
