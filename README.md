@@ -1,4 +1,4 @@
-#Intriguing ISS Trajectory Data
+# Intriguing International Space Station (ISS) Trajectory Data
 
 Project Objective
 -----------------------------
