@@ -6,6 +6,6 @@ services:
         build:
             context: ./
             dockerfile: ./Dockerfile
-        image: tagower/iss_tracker:project
+        image: tagower/iss_tracker:midterm
         volumes:
             - ./config.yaml:/config.yaml
