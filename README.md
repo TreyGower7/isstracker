@@ -65,9 +65,9 @@ Ensure when curling an image you use the second ip listed in green box (IP could
 
 Example Outputs:
 
-*For all paths usecurl <GreenBoxIP>/help
+*For all paths use curl <GreenBoxIP>/help
 
-	To Delete or Post Data from the iss trajectory:
+To Delete or Post Data from the iss trajectory:
 ```sh
 curl -X POST <GreenBoxIP>:5000/post-data 
 ```	
@@ -124,9 +124,10 @@ Output:
         ] 
 	
 Location path example: 
-	```sh 	
-	curl <GreenboxIP>:5000/now
-Output:	```
+```sh 	
+curl <GreenboxIP>:5000/now
+```
+Output:	
 {
   "Location": {
     "altitude": {
