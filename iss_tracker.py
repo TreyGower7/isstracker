@@ -22,6 +22,7 @@ Typical Usage Example:
         ]   
 """
 app = Flask(__name__)
+flag = 0
 
 @app.route('/help', methods=['GET'])
 def help() -> str:
@@ -65,15 +66,17 @@ def get_data():
     Returns:
         A dictionary named iss_data containing the data imported from an xml file using python requests library
         **Can also return a string if the data does not get retrieved**
-    """
-    url = 'https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.xml'
-    response = requests.get(url)
-    if response.status_code == 200:
-        iss_data = xmltodict.parse(response.text)
-        return iss_data
+    """ 
+    if flag ==0:
+        url = 'https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.xml'
+        response = requests.get(url)
+        if response.status_code == 200:
+            iss_data = xmltodict.parse(response.text)
+            return iss_data
+        else:
+            return 'failed to retrieve data'
     else:
-        return 'failed to retrieve data'
-
+        return data_status()
 
 @app.route('/status', methods=['GET'])
 def data_status() -> dict:
@@ -144,6 +147,7 @@ def get_epochs() -> list:
     if iss_data == {}:
         return data_status()
     epoch_data = []
+    L = len(iss_data['ndm']['oem']['body']['segment']['data']['stateVector'])
     for x in range(L):
         epoch_data.append(iss_data['ndm']['oem']['body']['segment']['data']['stateVector'][x]['EPOCH'])
    
@@ -213,6 +217,8 @@ def delete_data() -> str:
     """
     global iss_data
     iss_data.clear()
+    global flag
+    flag =1
     return 'data cleared'
 
 @app.route('/post-data', methods=['POST'])
@@ -224,6 +230,8 @@ def post_data() -> str:
     Returns:
         a message string
     """
+    global flag
+    flag =0
     global iss_data
     iss_data = get_data()
     return 'Data Posted'
@@ -331,7 +339,6 @@ def get_time(epoch):
 
 #global trajectory data variable and length
 iss_data = get_data()
-L = len(iss_data['ndm']['oem']['body']['segment']['data']['stateVector'])
 
 if __name__ == '__main__':
     config = get_config()
