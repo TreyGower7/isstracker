@@ -66,10 +66,9 @@ Ensure when curling an image you use the second ip listed in green box (IP could
 Example Outputs:
 
 *For a help screen containing all paths use 
-
-	```sh 
-	curl <GreenBoxIP>/help
-	```	
+```sh
+curl <GreenBoxIP>/help
+```
 
 To Delete or Post Data from the iss trajectory:
 
