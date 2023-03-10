@@ -154,4 +154,6 @@ Data and Unit Information
 -----------------------------
 All data being reported in each epoch has units time, km, km/s respectively. Where the epoch is time and date X,Y,Z is in km and X_DOT,Y_DOT, and Z_DOT are all in km/s. 
 
+Longitude and latitude are given in degrees. Altitude is a distance extending in the normal direction from earth to the ISS.
+
 ***When curling the speed function speed is returned in km/s as well.***
