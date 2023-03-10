@@ -67,7 +67,10 @@ Example Outputs:
 
 *For a help screen containing all paths use 
 
-```sh curl <GreenBoxIP>/help```	
+	```sh 
+	curl <GreenBoxIP>/help
+	```	
+
 To Delete or Post Data from the iss trajectory:
 
 ```sh
