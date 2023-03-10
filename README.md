@@ -1,4 +1,4 @@
-# Interesting ISS Trajectory Data
+#Intriguing ISS Trajectory Data
 
 folder contents / project objective
 -----------------------------
@@ -6,7 +6,7 @@ Folder contains 1 .py script iss_tracker.py. The objective is to feed in data fr
 
 Data Access
 -----------------------------
-using the the iss_tracker python script and pythons import requests library we access and get data from the data set found here: 'https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.xml'. The download contains data in 4 minute intervals of position, and velocity of the ISS Space Station.
+Using the the iss_tracker python script and pythons import requests library we access and get data from the data set found here: 'https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.xml'. The download contains data in 4 minute intervals of position, and velocity of the ISS Space Station.
 
 Description of Files
 -----------------------------
