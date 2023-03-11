@@ -6,9 +6,9 @@ The objective is to feed in data from NASA using python requests library, query 
 
 Description of Files
 -----------------------------
-	The Python script iss_tracker.py gets the NASA data from an xml file from NASA and imports the data. Then we store the coordinates in vectors or lists for specific epochs (the date and time of the trajectory data) in the data set. Then, this data is used to do useful calculations for geo position (where the ISS is relative to earth) and speed.
-	The Dockerfile is used to capture the docker image. The file specifies the Python version, and downloads any libraries used in the python script that needs to be installed to run the application. 
-	The docker-compose.yml file is extremely useful as it saves the user (you) from having to type in tricky commands to run the docker image. Instead it wraps the information for the docker image into one file and runs it with a simple command.
+The Python script iss_tracker.py gets the NASA data from an xml file from NASA and imports the data. Then we store the coordinates in vectors or lists for specific epochs (the date and time of the trajectory data) in the data set. Then, this data is used to do useful calculations for geo position (where the ISS is relative to earth) and speed.
+The Dockerfile is used to capture the docker image. The file specifies the Python version, and downloads any libraries used in the python script that needs to be installed to run the application. 
+The docker-compose.yml file is extremely useful as it saves the user (you) from having to type in tricky commands to run the docker image. Instead it wraps the information for the docker image into one file and runs it with a simple command.
 
 Data Access
 -----------------------------
