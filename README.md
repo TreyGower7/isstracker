@@ -19,7 +19,10 @@ Using the the iss_tracker python script and pythons import requests library we a
 
 Instructions on Use Using Existing Docker Image
 -----------------------------
-In your linux environment run the command:   
+In your linux environment run the command:
+	
+	wget https://github.com/TreyGower7/isstracker/blob/main/docker-compose.yml
+then:
 ```sh  
 docker pull tagower/iss_tracker:midterm
 ```
