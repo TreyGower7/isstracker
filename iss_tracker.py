@@ -41,7 +41,7 @@ Path Options:\n
 Epoch Paths:
             (1) / (gets all data from the ISS)\n
             (2) /epochs (gets all epochsfrom the ISS)\n
-            (3) /epochs?limit=int&offset=int  (Return modified list of Epochs given query parameters)\n
+            (3) /epochs?'limit=int&offset=int'  (Return modified list of Epochs given query parameters)\n
             (4) /epochs/<epoch> (return a specific epoch given a date and time)\n
             (5) /epochs/<epoch>/speed (Return instantaneous speed for a specific Epoch)\n
             (6) /epochs/<epoch>/location (Returns Latitude,Longitude, and geopositional data for specific epoch)\n
