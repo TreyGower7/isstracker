@@ -16,6 +16,7 @@ Data Access
 -----------------------------
 Using the the iss_tracker python script and pythons import requests library we access and get data from the data set found here: 'https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.xml'. The download contains data in 4 minute intervals of position, and velocity of the ISS Space Station.
 
+Full website here: https://spotthestation.nasa.gov/trajectory_data.cfm
 
 Instructions on Use Using Existing Docker Image
 -----------------------------
